@@ -139,14 +139,36 @@ pub fn string_concat(args: &[ColumnarValue]) -> Result<ColumnarValue> {
                 for arg in args {
                     #[allow(clippy::collapsible_match)]
                     match arg {
-                        ColumnarValue::Scalar(ScalarValue::Utf8(maybe_value)) => {
-                            if let Some(value) = maybe_value {
-                                owned_string.push_str(value);
-                            } else {
+                        ColumnarValue::Scalar(scalar) => match scalar {
+                            ScalarValue::Utf8(maybe_value) => {
+                                if let Some(value) = maybe_value {
+                                    owned_string.push_str(value);
+                                } else {
+                                    is_not_null = false;
+                                    break;
+                                }
+                            }
+                            ScalarValue::Float64(Some(v)) => {
+                                owned_string.push_str(&format!("{:e}", v));
+                            }
+                            ScalarValue::Float32(Some(v)) => {
+                                owned_string.push_str(&format!("{:e}", v));
+                            }
+                            ScalarValue::Int8(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::Int16(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::Int32(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::Int64(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::UInt8(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::UInt16(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::UInt32(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::UInt64(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::Boolean(Some(v)) => owned_string.push_str(&v.to_string()),
+                            other if other.is_null() => {
                                 is_not_null = false;
                                 break;
                             }
-                        }
+                            _ => unreachable!(),
+                        },
                         ColumnarValue::Array(v) => {
                             if v.is_valid(index) {
                                 let v = as_string_array(v).unwrap();
@@ -180,9 +202,22 @@ pub fn string_concat(args: &[ColumnarValue]) -> Result<ColumnarValue> {
         let result = args.iter().fold(initial, |mut acc, rhs| {
             if let Some(ref mut inner) = acc {
                 match rhs {
-                    ColumnarValue::Scalar(ScalarValue::Utf8(Some(v))) => {
-                        inner.push_str(v);
-                    }
+                    ColumnarValue::Scalar(scalar) => match scalar {
+                        ScalarValue::Utf8(Some(v)) => inner.push_str(v),
+                        ScalarValue::Float64(Some(v)) => inner.push_str(&format!("{:e}", v)),
+                        ScalarValue::Float32(Some(v)) => inner.push_str(&format!("{:e}", v)),
+                        ScalarValue::Int8(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::Int16(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::Int32(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::Int64(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::UInt8(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::UInt16(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::UInt32(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::UInt64(Some(v)) => inner.push_str(&v.to_string()),
+                        ScalarValue::Boolean(Some(v)) => inner.push_str(&v.to_string()),
+                        other if other.is_null() => (),
+                        _ => unreachable!(""),
+                    },
                     _ => unreachable!(""),
                 };
             };
