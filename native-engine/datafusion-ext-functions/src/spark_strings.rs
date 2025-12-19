@@ -139,35 +139,84 @@ pub fn string_concat(args: &[ColumnarValue]) -> Result<ColumnarValue> {
                 for arg in args {
                     #[allow(clippy::collapsible_match)]
                     match arg {
-                        ColumnarValue::Scalar(scalar) => match scalar {
+                        ColumnarValue::Scalar(scalar) => {
+                            eprintln!("[string_concat Array Branch] Processing scalar at index {}: {:?}", index, scalar);
+                            match scalar {
                             ScalarValue::Utf8(maybe_value) => {
                                 if let Some(value) = maybe_value {
                                     owned_string.push_str(value);
+                                    eprintln!("  -> Utf8: appended '{}', result so far: '{}'", value, owned_string);
                                 } else {
                                     is_not_null = false;
+                                    eprintln!("  -> Utf8 null, marking is_not_null=false");
                                     break;
                                 }
                             }
                             ScalarValue::Float64(Some(v)) => {
-                                owned_string.push_str(&format!("{:e}", v));
+                                let scientific = format!("{:e}", v);
+                                owned_string.push_str(&scientific);
+                                eprintln!("  -> Float64: appended '{}', result so far: '{}'", scientific, owned_string);
                             }
                             ScalarValue::Float32(Some(v)) => {
-                                owned_string.push_str(&format!("{:e}", v));
+                                let scientific = format!("{:e}", v);
+                                owned_string.push_str(&scientific);
+                                eprintln!("  -> Float32: appended '{}', result so far: '{}'", scientific, owned_string);
                             }
-                            ScalarValue::Int8(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::Int16(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::Int32(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::Int64(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::UInt8(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::UInt16(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::UInt32(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::UInt64(Some(v)) => owned_string.push_str(&v.to_string()),
-                            ScalarValue::Boolean(Some(v)) => owned_string.push_str(&v.to_string()),
+                            ScalarValue::Int8(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> Int8: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::Int16(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> Int16: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::Int32(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> Int32: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::Int64(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> Int64: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::UInt8(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> UInt8: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::UInt16(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> UInt16: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::UInt32(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> UInt32: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::UInt64(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> UInt64: appended '{}', result so far: '{}'", s, owned_string);
+                            }
+                            ScalarValue::Boolean(Some(v)) => {
+                                let s = v.to_string();
+                                owned_string.push_str(&s);
+                                eprintln!("  -> Boolean: appended '{}', result so far: '{}'", s, owned_string);
+                            }
                             other if other.is_null() => {
                                 is_not_null = false;
+                                eprintln!("  -> Null scalar, marking is_not_null=false");
                                 break;
                             }
-                            _ => unreachable!(),
+                            _ => {
+                                eprintln!("  -> Unsupported scalar type: {:?}", scalar);
+                                unreachable!();
+                            }
+                        }
                         },
                         ColumnarValue::Array(v) => {
                             if v.is_valid(index) {
@@ -201,22 +250,78 @@ pub fn string_concat(args: &[ColumnarValue]) -> Result<ColumnarValue> {
         let initial = Some("".to_string());
         let result = args.iter().fold(initial, |mut acc, rhs| {
             if let Some(ref mut inner) = acc {
+                eprintln!("[string_concat Scalar Branch] Processing arg: {:?}", rhs);
                 match rhs {
-                    ColumnarValue::Scalar(scalar) => match scalar {
-                        ScalarValue::Utf8(Some(v)) => inner.push_str(v),
-                        ScalarValue::Float64(Some(v)) => inner.push_str(&format!("{:e}", v)),
-                        ScalarValue::Float32(Some(v)) => inner.push_str(&format!("{:e}", v)),
-                        ScalarValue::Int8(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::Int16(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::Int32(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::Int64(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::UInt8(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::UInt16(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::UInt32(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::UInt64(Some(v)) => inner.push_str(&v.to_string()),
-                        ScalarValue::Boolean(Some(v)) => inner.push_str(&v.to_string()),
-                        other if other.is_null() => (),
-                        _ => unreachable!(""),
+                    ColumnarValue::Scalar(scalar) => {
+                        eprintln!("  -> Scalar type: {:?}", scalar);
+                        match scalar {
+                        ScalarValue::Utf8(Some(v)) => {
+                            inner.push_str(v);
+                            eprintln!("    -> Utf8 appended: '{}', accumulated: '{}'", v, inner);
+                        }
+                        ScalarValue::Float64(Some(v)) => {
+                            let s = format!("{:e}", v);
+                            inner.push_str(&s);
+                            eprintln!("    -> Float64 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::Float32(Some(v)) => {
+                            let s = format!("{:e}", v);
+                            inner.push_str(&s);
+                            eprintln!("    -> Float32 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::Int8(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> Int8 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::Int16(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> Int16 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::Int32(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> Int32 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::Int64(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> Int64 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::UInt8(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> UInt8 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::UInt16(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> UInt16 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::UInt32(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> UInt32 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::UInt64(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> UInt64 appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        ScalarValue::Boolean(Some(v)) => {
+                            let s = v.to_string();
+                            inner.push_str(&s);
+                            eprintln!("    -> Boolean appended: '{}', accumulated: '{}'", s, inner);
+                        }
+                        other if other.is_null() => {
+                            eprintln!("    -> Null scalar, skipping");
+                        }
+                        _ => {
+                            eprintln!("    -> Unsupported scalar type");
+                            unreachable!("");
+                        }
+                    }
                     },
                     _ => unreachable!(""),
                 };
