@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+set -ex
+
+PROJECT_DIR="$(cd "`dirname "$0"`/.."; pwd)"
+
+CHECK="false"
+while (( "$#" )); do
+    case $1 in
+      --check)
+        CHECK="true"
+        ;;
+    esac
+  shift
+done
+
+MODE=pre
+SCALA_PROFILE=scala-2.12
+function run_maven() {
+  if [[ "$CHECK" == "true" ]]; then
+    "${PROJECT_DIR}"/build/mvn spotless:check compile test-compile scalafix:scalafix -Dscalafix.mode=CHECK -Dscalafix.skipTest=true -DskipBuildNative -P"${MODE}" -P"${SCALA_PROFILE}" "$@"
+  else
+    "${PROJECT_DIR}"/build/mvn spotless:apply compile test-compile scalafix:scalafix -DskipBuildNative -P"${MODE}" -P"${SCALA_PROFILE}" "$@"
+  fi
+}
+
+# check or format the rust code
+if [[ "$CHECK" == "true" ]]; then
+  cargo fmt --check
+else
+  cargo fix --all --allow-dirty --allow-staged --allow-no-vcs
+  cargo fmt --all -q --
+fi
+
+# Check or format all code, including third-party code, with spark-3.5
+sparkver=spark-3.5
+for celebornver in celeborn-0.5 celeborn-0.6
+do
+  run_maven -P"${sparkver}" -Pceleborn,"${celebornver}" -Puniffle,uniffle-0.10 -Ppaimon,paimon-1.2 -Pflink,flink-1.18 -Piceberg,iceberg-1.9
+
+done
+
+sparkvers=(spark-3.0 spark-3.1 spark-3.2 spark-3.3 spark-3.4)
+for sparkver in "${sparkvers[@]}"
+do
+  run_maven -P"${sparkver}"
+done

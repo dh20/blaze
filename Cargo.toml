@@ -1,0 +1,142 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+[workspace]
+members = [
+    "native-engine/datafusion-ext-commons",
+    "native-engine/datafusion-ext-exprs",
+    "native-engine/datafusion-ext-functions",
+    "native-engine/datafusion-ext-plans",
+    "native-engine/auron",
+    "native-engine/auron-jni-bridge",
+    "native-engine/auron-serde",
+    "native-engine/auron-memmgr",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = false
+
+[profile.pre]
+inherits = "release"
+#incremental = true
+opt-level = 1
+lto = false
+codegen-units = 16
+strip = false
+
+[profile.dev]
+debug = true
+overflow-checks = false
+
+[workspace.dependencies]
+auron = { path = "./native-engine/auron" }
+auron-jni-bridge = { path = "./native-engine/auron-jni-bridge" }
+auron-serde = { path = "./native-engine/auron-serde" }
+auron-memmgr = { path = "./native-engine/auron-memmgr" }
+datafusion-ext-commons = { path = "./native-engine/datafusion-ext-commons" }
+datafusion-ext-exprs = { path = "./native-engine/datafusion-ext-exprs" }
+datafusion-ext-functions = { path = "./native-engine/datafusion-ext-functions" }
+datafusion-ext-plans = { path = "./native-engine/datafusion-ext-plans" }
+
+# datafusion
+datafusion = { version = "49.0.0" }
+datafusion-datasource = { version = "49.0.0" }
+datafusion-datasource-parquet = { version = "49.0.0" }
+datafusion-spark = { version = "49.0.0" }
+
+# orc
+orc-rust = { version = "0.7.0" }
+
+# arrow
+arrow = { version = "55.2.0", features = ["ffi"]}
+arrow-schema = { version = "55.2.0", features = ["serde"] }
+
+# parquet
+parquet = { version = "55.2.0" }
+
+# json
+serde_json = { version = "1.0.96" }
+
+# other dependencies
+async-trait = "0.1.89"
+base64 = "0.22.1"
+bigdecimal = "0.4.10"
+bitvec = "1.0.1"
+byteorder = "1.5.0"
+bytes = "1.11.0"
+bytesize = "2.3.1"
+chrono = "0.4.42"
+count-write = "0.1.0"
+foldhash = "0.2.0"
+futures = "0.3"
+futures-util = "0.3.31"
+hashbrown = "0.14.5"
+itertools = "0.14.0"
+jni = "0.20.0"
+log = "0.4.29"
+lz4_flex = "0.12.0"
+num = "0.4.2"
+object_store = "0.12.4"
+once_cell = "1.21.3"
+panic-message = "0.3.0"
+parking_lot = "0.12.5"
+paste = "1.0.15"
+procfs = "0.18.0"
+prost = "0.14.1"
+rand = "0.9.2"
+smallvec = "2.0.0-alpha.11"
+sonic-rs = "0.5.6"
+tempfile = "3"
+tokio = "1.48.0"
+tonic-build = "0.13.1"
+transpose = "0.2.3"
+unchecked-index = "0.2.2"
+zstd = "0.13.3"
+
+[patch.crates-io]
+# datafusion: branch=v49.0.0-blaze
+datafusion = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-common = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-expr = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-datasource = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-datasource-parquet = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-execution = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-optimizer = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-physical-expr = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+datafusion-spark = { git = "https://github.com/auron-project/datafusion.git", rev = "9034aeffb"}
+orc-rust = { git = "https://github.com/auron-project/datafusion-orc.git", rev = "919e050"}
+
+# arrow: branch=v55.2.0-blaze
+arrow = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-arith = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-array = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-buffer = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-cast = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-data = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-ipc = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-ord = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-row = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-schema = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-select = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+arrow-string = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+parquet = { git = "https://github.com/auron-project/arrow-rs.git", rev = "5de02520c"}
+
+# serde_json: branch=v1.0.96-blaze
+serde_json = { git = "https://github.com/auron-project/json", rev = "95fa6cb" }
