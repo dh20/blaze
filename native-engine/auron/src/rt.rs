@@ -141,7 +141,7 @@ impl NativeExecutionRuntime {
                 .set_show_schema(true)
                 .indent(true)
                 .to_string();
-            log::info!("start executing plan:\n{displayable}");
+            log::debug!("start executing plan:\n{displayable}");
             let mut stream = exec_ctx_cloned.execute(&execution_plan_cloned)?;
 
             // coalesce output stream if necessary
